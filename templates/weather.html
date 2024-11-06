@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather App</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        .weather { max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ccc; border-radius: 10px; }
+    </style>
+</head>
+<body>
+    <div class="weather">
+        <h1>Weather in {{ weather.location }}</h1>
+        <p>Temperature: {{ weather.temperature }}°C</p>
+        <p>Weather description: {{ weather.description }}</p>
+        <p>Humidity: {{ weather.humidity }}%</p>
+        <p>Wind Speed: {{ weather.wind_speed }} m/s</p>
+        <p>Sunrise: {{ weather.sunrise }}</p>
+        <p>Sunset: {{ weather.sunset }}</p>
+    </div>
+</body>
+</html>
