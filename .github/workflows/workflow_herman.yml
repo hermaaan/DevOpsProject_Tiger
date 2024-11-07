@@ -8,9 +8,6 @@ on:
         required: true
         type: boolean
         default: false
-env: 
-  FLASK_APP: "app.py"
-  FLASK_ENV: "development"
 
 jobs:
   test_openweathermap_ubuntu:
@@ -41,11 +38,13 @@ jobs:
         run: pytest
 
       # Step 5: Start Flask
-      - name: Run Flask
+      - name: Run Flask app
         env:
-          FLASK_APP: "app.py"
+          FLASK_APP: "app.py"  # Replace with your actual app filename
+          FLASK_ENV: development
         run: |
           nohup flask run --host=0.0.0.0 &
+          sleep 5  # Give the server a few seconds to start
 
       # Step 6: Run integration tests
       - name: Run integration tests
