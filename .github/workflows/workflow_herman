@@ -1,1 +1,25 @@
 
+name: Test OpenWeatherMap API
+
+on:
+  workflow_dispatch:
+    inputs:
+      runTest:
+        required: true
+        type: boolean
+        default: false
+
+jobs:
+  test_openweathermap_ubuntu:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout code
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Set up Python
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11.5'
