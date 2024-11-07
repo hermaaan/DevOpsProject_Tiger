@@ -43,7 +43,7 @@ jobs:
           FLASK_APP: "app.py"  # Replace with your actual app filename
           FLASK_ENV: development
         run: |
-          nohup flask run --host=0.0.0.0 &
+          nohup python -m flask run --host=0.0.0.0 &
           sleep 5  # Give the server a few seconds to start
 
       # Step 6: Run integration tests
