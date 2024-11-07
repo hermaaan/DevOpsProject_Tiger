@@ -8,6 +8,9 @@ on:
         required: true
         type: boolean
         default: false
+env: 
+  FLASK_APP: "app.py"
+  FLASK_ENV: "development"
 
 jobs:
   test_openweathermap_ubuntu:
@@ -29,3 +32,22 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install requests
+
+      #Step 4: Run tests
+      - name: Run tests
+        if: ${{ github.event.inputs.runTest == 'true' }}
+        env:
+          API_KEY: ${{ secrets.API_KEY }}
+        run: pytest
+
+      # Step 5: Start Flask
+      - name: Run Flask
+        env:
+          FLASK_APP: "app.py"
+        run: |
+          nohup flask run --host=0.0.0.0 &
+
+      # Step 6: Run integration tests
+      - name: Run integration tests
+        run: |
+          curl http://127.0.0.1:5000/health
