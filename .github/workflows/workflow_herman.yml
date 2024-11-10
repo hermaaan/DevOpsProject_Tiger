@@ -48,6 +48,5 @@ jobs:
 
       #Step 6 Run integration tests
       - name: Run integration tests
-        run: |
-          curl http://127.0.0.1:5000/health
+        run: python integrationtest_herman.py
 
