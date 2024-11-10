@@ -45,8 +45,10 @@ jobs:
         run: |
           nohup python -m flask run --host=0.0.0.0 &
           sleep 5  # Give the server a few seconds to start
-
-      #Step 6 Run integration tests
-      - name: Run integration tests
+    
+      # Step 6: Run integration test
+      - name: Run integration test
+        env:
+          API_KEY: ${{ secrets.API_KEY }}  # Pass the GitHub secret API_KEY as an environment variable
         run: python integrationtest_herman.py
 
