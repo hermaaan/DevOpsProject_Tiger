@@ -46,7 +46,16 @@ jobs:
           nohup python -m flask run --host=0.0.0.0 &
           sleep 5  # Give the server a few seconds to start
 
-      # Step 6: Run integration tests
+      #Step 6 Run integration tests
       - name: Run integration tests
         run: |
-          curl http://127.0.0.1:5000/health
+          # Check health route
+          curl --silent --show-error http://127.0.0.1:5000/health || exit 1
+
+          response_code=$(curl --write-out "%{http_code}" --silent --output /dev/null http://127.0.0.1:5000/)
+          if [ "$response_code" -eq 200 ]; then
+            echo "Weather API response is 200 OK!"
+          else
+            echo "Weather API failed with response code $response_code!"
+            exit 1
+          fi
