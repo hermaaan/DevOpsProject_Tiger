@@ -1,17 +1,16 @@
 from flask import Flask, render_template, jsonify
+import os
 import requests
 from datetime import datetime
-import os
 from dotenv import load_dotenv
 
 load_dotenv()
 
 app = Flask(__name__)
 
-@app.route('/health', methods=['GET'])
-def health_check():
-    """Health check route"""
-    return "Healthy", 200
+#Coordinates
+LAT = 59.3293  
+LON = 18.0686  
 
 @app.route('/')
 def home():
@@ -19,9 +18,7 @@ def home():
     if not api_key:
         return "API key is missing or incorrect in .env file"
     
-    lat = 59.3293
-    lon = 18.0686
-    url = f"https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={api_key}&units=metric&lang=en"
+    url = f"https://api.openweathermap.org/data/2.5/weather?lat={LAT}&lon={LON}&appid={api_key}&units=metric&lang=en"
 
     response = requests.get(url)
     if response.status_code == 200:
@@ -48,9 +45,7 @@ def update_weather():
     if not api_key:
         return jsonify({"error": "API key is missing or incorrect in .env file"}), 400
     
-    lat = 59.3293
-    lon = 18.0686
-    url = f"https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={api_key}&units=metric&lang=en"
+    url = f"https://api.openweathermap.org/data/2.5/weather?lat={LAT}&lon={LON}&appid={api_key}&units=metric&lang=en"
 
     response = requests.get(url)
     if response.status_code == 200:
