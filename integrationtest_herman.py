@@ -1,5 +1,3 @@
-# integration_test.py
-
 import os
 import requests
 from dotenv import load_dotenv
@@ -7,9 +5,7 @@ from app import LAT, LON
 
 load_dotenv()
 
-def test_weather_api():
-    """Test the OpenWeather API with coordinates from app.py."""
-    
+def test_weather_api():    
     api_key = os.getenv('API_KEY')
     if not api_key:
         raise ValueError("API key is missing in the .env file")
