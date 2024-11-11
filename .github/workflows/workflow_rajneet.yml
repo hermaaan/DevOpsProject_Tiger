@@ -1,4 +1,4 @@
-name: Test and Build Workflow
+name: Test and Build flask app for open weather map
 
 on: push
 
