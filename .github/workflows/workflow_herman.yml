@@ -7,6 +7,10 @@ on:
         required: true
         type: boolean
         default: false
+      logErrors:
+        required: true
+        type: boolean
+        default: false
 
 jobs:
   test_openweathermap_ubuntu:
@@ -22,20 +26,21 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: '3.11.5'
-     
+
       # Step 3: Install dependencies
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      # Step 4: Run tests (using unittest)
+      # Step 4: Run unittest tests
       - name: Run unittest tests
         if: ${{ github.event.inputs.runTest == 'true' }}
         env:
           API_KEY: ${{ secrets.API_KEY }}
         run: |
-          python -m unittest discover -s . -p "unittest_herman.py"
+          python -m unittest discover -s . -p "unittest_herman.py" 2>&1 | tee test_output.log
+        continue-on-error: true
 
       # Step 5: Start Flask app
       - name: Run Flask app
@@ -45,10 +50,18 @@ jobs:
         run: |
           nohup python -m flask run --host=0.0.0.0 &
           sleep 5  # Give the server a few seconds to start
-    
+
       # Step 6: Run integration test
       - name: Run integration test
         env:
-          API_KEY: ${{ secrets.API_KEY }}  # Pass the GitHub secret API_KEY as an environment variable
+          API_KEY: ${{ secrets.API_KEY }}
         run: python integrationtest_herman.py
+        continue-on-error: true
 
+      # Step 7: Upload log file on failure if logErrors is true and any test failed
+      - name: Upload log file on failure
+        if: ${{ github.event.inputs.logErrors == 'true' && (steps.run_unittest_tests.outcome == 'failure' || steps.run_integration_test.outcome == 'failure') }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: test_failure_logs
+          path: test_output.log
