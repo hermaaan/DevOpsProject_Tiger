@@ -1,4 +1,4 @@
-name: Test and Build flask app for open weather map
+name: Test and Build Flask App for OpenWeatherMap
 
 on: push
 
