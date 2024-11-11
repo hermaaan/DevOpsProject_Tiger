@@ -1,12 +1,13 @@
 name: Test and Build Flask App for OpenWeatherMap
 
-on: push
+on: 
+ push: 
+  branches:
+   - rajneet_branch
 
 jobs:
   test-job:
     runs-on: ubuntu-latest
-    env:
-      EXPECTED_RESULT: 2
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -21,11 +22,15 @@ jobs:
           python -m pip install --upgrade pip
           pip install pytest
 
-      - name: Run Tests
+      - name: Run Unit Tests
         run: |
           pytest Test_app.py
         env:
           GREETING: "Running tests for application logic"
+          
+      - name: Run Integration Tests
+        run: |
+          pytest Test_app.py
 
       - name: Confirm Test Output
         run: |
