@@ -1,0 +1,65 @@
+name: Test and Build Flask App for OpenWeatherMap
+
+on: workflow_dispatch
+  
+jobs:
+  test-job:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11.5'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run Unit Tests
+        run: |
+          pytest unittest_rajneet.py
+        env:
+          GREETING: "Running unit tests for application logic"
+          OPENWEATHERMAP_API_KEY: ${{ secrets.API_KEY_RAJNEET }}  # API Key from Secrets
+          
+      - name: Run Integration Tests
+        run: |
+          pytest integrationtest_rajneet.py
+        env:
+          OPENWEATHERMAP_API_KEY: ${{ secrets.API_KEY_RAJNEET }}  # API Key from Secrets
+
+      - name: Confirm Test Output
+        run: |
+          echo "$GREETING"
+          export EXPECTED_RESULT="All tests passed"
+          echo "Expected Result: $EXPECTED_RESULT"
+          
+  build-job:
+    runs-on: ubuntu-latest
+    needs: test-job
+    if: success()
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install Dependencies for Flask App
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run Flask App
+        run: |
+          export FLASK_APP=your_flask_app.py  # Make sure to set the entry point
+          export FLASK_ENV=development
+          flask run --host=0.0.0.0 --port=5000 &
+        env:
+          OPENWEATHERMAP_API_KEY: ${{ secrets.API_KEY_RAJNEET }}  # API Key from Secrets
+
+      - name: Confirm Build Status
+        run: |
+          echo "Flask application is running"
+          echo "Build job completed successfully."
