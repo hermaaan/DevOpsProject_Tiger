@@ -25,14 +25,14 @@ jobs:
 
       - name: Run Unit Tests
         run: |
-          pytest unittest_rajneet.py
+          pytest unittest_Rajneet.py
         env:
           GREETING: "Running unit tests for application logic"
           OPENWEATHERMAP_API_KEY: ${{ secrets.API_KEY_RAJNEET }}  # API Key from Secrets
           
       - name: Run Integration Tests
         run: |
-          pytest integrationtest_rajneet.py
+          pytest integrationtest_Rajneet.py
         env:
           OPENWEATHERMAP_API_KEY: ${{ secrets.API_KEY_RAJNEET }}  # API Key from Secrets
 
