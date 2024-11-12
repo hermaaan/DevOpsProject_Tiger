@@ -1,7 +1,13 @@
 name: Test and Build Flask App for OpenWeatherMap
 
-on: workflow_dispatch
-  
+on:
+  workflow_dispatch:
+    inputs:
+      log_errors:
+        description: 'Enable error logging'
+        required: false
+        default: 'false'
+
 jobs:
   test-job:
     runs-on: ubuntu-latest
@@ -18,11 +24,9 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-
       - name: Install pytest
         run: |
           pip install pytest  # Ensure pytest is installed
-
       - name: Run Unit Tests
         run: |
           pytest unittest_Rajneet.py
@@ -42,10 +46,22 @@ jobs:
           export EXPECTED_RESULT="All tests passed"
           echo "Expected Result: $EXPECTED_RESULT"
           
+      - name: Generate Error Log (if log_errors is true)
+        if: ${{ github.event.inputs.log_errors == 'true' }}
+        run: |
+          if [ $? -ne 0 ]; then
+            echo "Tests failed, generating error log..." > error_log.txt
+            echo "Unit Tests and Integration Tests failed" >> error_log.txt
+            # Optionally, upload the error log as an artifact
+            echo "Uploading error log as artifact"
+            mkdir -p error_logs
+            mv error_log.txt error_logs/
+          fi
+
   build-job:
     runs-on: ubuntu-latest
     needs: test-job
-    if: success()
+    if: success()  # Only runs if the test-job was successful
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -54,7 +70,6 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-
       - name: Run Flask App
         run: |
           export FLASK_APP=your_flask_app.py  # Make sure to set the entry point
@@ -67,3 +82,10 @@ jobs:
         run: |
           echo "Flask application is running"
           echo "Build job completed successfully."
+      
+      - name: Upload Error Log if Available
+        if: ${{ github.event.inputs.log_errors == 'true' && needs.test-job.outputs.error_log_exists == 'true' }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: error_log
+          path: error_logs/error_log.txt
