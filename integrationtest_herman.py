@@ -18,6 +18,7 @@ def test_weather_api():
         print("Integration test passed: Received OK status from OpenWeather API")
     else:
         print(f"Integration test failed: Received {response.status_code} from OpenWeather API")
+        sys.exit(1)
 
 if __name__ == '__main__':
     test_weather_api()
