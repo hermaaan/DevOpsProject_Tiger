@@ -14,7 +14,7 @@ LON = 18.0686
 # Home Route (/)
 @app.route('/')
 def home():
-    api_key = os.getenv('API_KEY') 
+    api_key = os.getenv('API_KEY')
     if not api_key:
         return "API key is missing or incorrect in .env file"
     
