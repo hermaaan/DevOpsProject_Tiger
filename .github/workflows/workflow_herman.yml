@@ -55,7 +55,9 @@ jobs:
       - name: Run integration test
         env:
           API_KEY: ${{ secrets.API_KEY }}
-        run: python integrationtest_herman.py
+        run: |
+         set -e
+         python integrationtest_herman.py
         continue-on-error: false  # Stop on test failure
 
       # Upload log file on failure if logErrors is true and any test failed
