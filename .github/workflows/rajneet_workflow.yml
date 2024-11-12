@@ -60,7 +60,7 @@ jobs:
           FLASK_ENV: development
         run: |
           nohup python -m flask run --host=0.0.0.0 &
-          sleep 
+          sleep 5
           
       - name: Upload Error Log if Available
         if: ${{ github.event.inputs.log_errors == 'true' && needs.test-job.outputs.error_log_exists == 'true' }}
