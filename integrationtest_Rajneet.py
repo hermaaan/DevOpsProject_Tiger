@@ -1,8 +1,9 @@
 import os
 import requests
 from app import LAT, LON
+from dotenv import load_dotenv
 
-
+load_dotenv()
 
 def test_weather_api():# Test the OpenWeather API and verify essential fields in the response."""
     
