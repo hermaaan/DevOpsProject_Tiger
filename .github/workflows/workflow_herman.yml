@@ -36,11 +36,12 @@ jobs:
       # Run unittest tests
       - name: Run unittest tests
         if: ${{ github.event.inputs.runTest == 'true' }}
+        id: run_unittest_tests
         env:
           API_KEY: ${{ secrets.API_KEY }}
         run: |
-          python -m unittest discover -s . -p "unittest_herman.py" 2>&1 | tee test_output.log
-        continue-on-error: false  # Stop on test failure
+          python -m unittest discover -s . -p "unittest_herman.py" 2>&1 | tee unittest_output.log
+        continue-on-error: true  # Continue on failure to capture logs
 
       # Start Flask app
       - name: Run Flask app
@@ -53,11 +54,12 @@ jobs:
 
       # Run integration test
       - name: Run integration test
+        id: run_integration_test
         env:
           API_KEY: ${{ secrets.API_KEY }}
-        run: python integrationtest_herman.py
-        continue-on-error: false  # Stop on test failure
-
+        run: python integrationtest_herman.py 2>&1 | tee integration_output.log
+        continue-on-error: true  
+        
       # Upload log file on failure if logErrors is true and any test failed
       - name: Upload log file on failure
         if: ${{ github.event.inputs.logErrors == 'true' && (steps.run_unittest_tests.outcome == 'failure' || steps.run_integration_test.outcome == 'failure') }}
