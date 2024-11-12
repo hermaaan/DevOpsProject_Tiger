@@ -3,10 +3,16 @@ name: Test and Build Flask App for OpenWeatherMap
 on:
   workflow_dispatch:
     inputs:
-      log_errors:
-        description: 'Enable error logging'
-        required: false
-        default: 'false'
+      runTest:
+        description: 'Run tests (true/false)'
+        required: true
+        type: boolean
+        default: false
+      logErrors:
+        description: 'Log errors if tests fail (true/false)'
+        required: true
+        type: boolean
+        default: false
 
 jobs:
   test-job:
@@ -24,7 +30,6 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install python-dotenv requests
           
       - name: Install pytest
         run: |
@@ -35,13 +40,13 @@ jobs:
           pytest unittest_Rajneet.py
         env:
           GREETING: "Running unit tests for application logic"
-          OPENWEATHERMAP_API_KEY: ${{ secrets.API_KEY}}  # API Key from Secrets
+          API_KEY: ${{ secrets.API_KEY}}  # API Key from Secrets
           
       - name: Run Integration Tests
         run: |
           pytest integrationtest_Rajneet.py
         env:
-          OPENWEATHERMAP_API_KEY: ${{ secrets.API_KEY}}  # API Key from Secrets
+          API_KEY: ${{ secrets.API_KEY}}  # API Key from Secrets
 
       - name: Confirm Test Output
         run: |
@@ -49,17 +54,12 @@ jobs:
           export EXPECTED_RESULT="All tests passed"
           echo "Expected Result: $EXPECTED_RESULT"
           
-      - name: Generate Error Log (if log_errors is true)
-        if: ${{ github.event.inputs.log_errors == 'true' }}
-        run: |
-          if [ $? -ne 0 ]; then
-            echo "Tests failed, generating error log..." > error_log.txt
-            echo "Unit Tests and Integration Tests failed" >> error_log.txt
-            # Optionally, upload the error log as an artifact
-            echo "Uploading error log as artifact"
-            mkdir -p error_logs
-            mv error_log.txt error_logs/
-          fi
+      - name: Upload log file on failure
+        if: ${{ github.event.inputs.logErrors == 'true' && (steps.run_unittest_tests.outcome == 'failure' || steps.run_integration_test.outcome == 'failure') }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: test_failure_logs
+          path: test_output.log
 
   build-job:
     runs-on: ubuntu-latest
@@ -73,14 +73,15 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-      - name: Run Flask App
-        run: |
-          export FLASK_APP=your_flask_app.py  # Make sure to set the entry point
-          export FLASK_ENV=development
-          flask run --host=0.0.0.0 --port=5000 &
+          
+      - name: Run Flask app
         env:
-          OPENWEATHERMAP_API_KEY: ${{ secrets.API_KEY_RAJNEET }}  # API Key from Secrets
-
+          FLASK_APP: "app.py"  # Replace with your actual app filename
+          FLASK_ENV: development
+        run: |
+          nohup python -m flask run --host=0.0.0.0 &
+          sleep 5
+          
       - name: Confirm Build Status
         run: |
           echo "Flask application is running"
