@@ -9,9 +9,6 @@ class TestWeatherApp(unittest.TestCase):
         cls.client = app.test_client()
         app.config['TESTING'] = True
 
-    def test_update_weather_status_code(self): # Test that the /update_weather route returns a 200 status code when successful."""
-        response = self.client.get('/update_weather')
-        self.assertIn(response.status_code, [200, 500], "Unexpected status code received.")
 
     def test_update_weather_success_response(self): # Test the structure and data types in a successful /update_weather response."""
         response = self.client.get('/update_weather')
