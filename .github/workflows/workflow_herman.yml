@@ -3,54 +3,48 @@ name: Test-OPWM-APP
 on:
   workflow_dispatch:
     inputs:
-      runTest:
+      log_errors:
+        description: 'Log errors if tests fail'
         required: true
+        default: 'false'
         type: boolean
-        default: false
-      logErrors:
-        required: true
-        type: boolean
-        default: false
 
 env:
+  API_KEY: ${{ secrets.API_KEY }}
   DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
   DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
-  API_KEY: ${{ secrets.API_KEY }}
 
 jobs:
   TEST_OPWM:
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout code
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Set up Python
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      # Install dependencies
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-
-      - name: Run tests
+      
+      - name: Run tests with pytest
         id: run_tests
-        run: pytest tests/ > pytest-results.log
+        run: pytest tests/ > log_errors.log
         continue-on-error: true
 
-      - name: Upload error logs if tests failed and logging is enabled
+      - name: Upload error log if LogErrors is enabled and any tests failed
         if: ${{ steps.run_tests.outcome == 'failure' && github.event.inputs.logErrors == 'true' }}
         uses: actions/upload-artifact@v4
         with:
-          name: error-log
-          path: pytest-results.log
+          name: Upload error log
+          path: log_errors.log
 
-      - name: Fail job if tests failed
+      - name: Mark job as failed if there are any errors
         if: ${{ steps.run_tests.outcome == 'failure' }}
         run: exit 1
 
@@ -64,7 +58,7 @@ jobs:
     steps:
       # Checkout code
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       # Log in to Docker Hub
       - name: Log in to Docker Hub
