@@ -34,7 +34,7 @@ jobs:
       
       - name: Run tests with pytest
         id: run_tests
-        run: pytest tests/ > log_errors.log
+        run: pytest test_UT_herman.py test_IT_herman.py > log_errors.log
         continue-on-error: true
 
       - name: Upload error log if LogErrors is enabled and any tests failed
