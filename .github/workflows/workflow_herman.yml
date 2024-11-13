@@ -86,6 +86,7 @@ jobs:
           path: |
             ./unittest_error.log
             ./integration_error.log
+          working-directory: /home/runner/work/DevOpsProject_Tiger/DevOpsProject_Tiger
   
   build_and_publish_docker:
     runs-on: ubuntu-latest
