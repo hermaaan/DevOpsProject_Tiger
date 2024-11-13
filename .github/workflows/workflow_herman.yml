@@ -93,7 +93,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: uploaded-error-logs
-          path: ./unittest_error.log
+          path: |
+            ./unittest_error.log
+            ./integration_error.log
           retention-days: 7
 
   
