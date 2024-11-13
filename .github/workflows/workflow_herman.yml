@@ -16,6 +16,10 @@ jobs:
   test_openweathermap_ubuntu:
     runs-on: ubuntu-latest
 
+    outputs:
+      unittest_failed: ${{ steps.run_unittest_tests.outcome == 'failure' }}
+      integration_failed: ${{ steps.run_integration_test.outcome == 'failure' }}
+
     steps:
       # Checkout code
       - name: Checkout code
@@ -41,7 +45,6 @@ jobs:
           API_KEY: ${{ secrets.API_KEY }}
         run: |
           python -m unittest discover -s . -p "unittest_herman.py" 2>&1 | tee unittest_error.log
-        continue-on-error: true
 
       # Start Flask app
       - name: Run Flask app
@@ -60,7 +63,6 @@ jobs:
         run: |
           python integrationtest_herman.py 2>&1 | tee integration_error.log
           exit ${PIPESTATUS[0]}  # Ensure the exit code from the python script is propagated
-        continue-on-error: false
 
       # Upload error logs if logErrors is set to true and tests fail
       - name: Upload error logs
@@ -75,7 +77,7 @@ jobs:
   build_and_publish_docker:
     runs-on: ubuntu-latest
     needs: test_openweathermap_ubuntu
-    if: success()  # Only runs if all previous steps succeed
+    if: ${{ needs.test_openweathermap_ubuntu.outputs.unittest_failed == 'false' && needs.test_openweathermap_ubuntu.outputs.integration_failed == 'false' }}
     steps:
       # Checkout code
       - name: Checkout code
