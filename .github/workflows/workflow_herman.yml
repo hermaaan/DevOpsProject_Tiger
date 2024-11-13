@@ -52,13 +52,17 @@ jobs:
           nohup python -m flask run --host=0.0.0.0 &
           sleep 5  # Give the server a few seconds to start
 
-      # Run integration test
+# Run integration test
       - name: Run integration test
         id: run_integration_test
         env:
           API_KEY: ${{ secrets.API_KEY }}
-        run: python integrationtest_herman.py 2>&1 | tee integration_output.log
+        run: |
+          python integrationtest_herman.py 2>&1 | tee integration_output.log
+          exit_code=${PIPESTATUS[0]}  # Capture the exit code from the python command
+          exit $exit_code  # Exit with the original command's exit code
         continue-on-error: false
+
 
       # Upload log files if logErrors is true and any test failed
       - name: Upload log file on failure
