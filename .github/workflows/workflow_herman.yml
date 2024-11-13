@@ -71,7 +71,7 @@ jobs:
         if: ${{ github.event.inputs.logErrors == 'true' }}
         uses: actions/upload-artifact@v4
         with:
-          name: error-logs
+          name: error-logs-${{ github.run_id }}  # Unique artifact name with run ID
           path: |
             ./unittest_error.log
             ./integration_error.log
@@ -85,7 +85,7 @@ jobs:
       - name: Download error logs
         uses: actions/download-artifact@v4
         with:
-          name: error-logs
+          name: error-logs-${{ github.run_id }}  # Ensure it matches the uploaded artifact name
 
       # Check if the log files exist
       - name: Check if log files exist
@@ -97,7 +97,7 @@ jobs:
       - name: Upload error logs
         uses: actions/upload-artifact@v4
         with:
-          name: error-logs
+          name: error-logs-${{ github.run_id }}  # Ensure it matches the uploaded artifact name
           path: |
             ./unittest_error.log
             ./integration_error.log
