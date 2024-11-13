@@ -36,6 +36,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+
       # Run unittest tests and redirect output to log file
       - name: Run unittest tests
         if: ${{ github.event.inputs.runTest == 'true' }}
@@ -54,6 +55,7 @@ jobs:
         run: |
           nohup python -m flask run --host=0.0.0.0 &
           sleep 5  # Give the server a few seconds to start
+
       # Run integration test and redirect output to log file
       - name: Run integration test
         id: run_integration_test
@@ -63,13 +65,15 @@ jobs:
           python integrationtest_herman.py 2>&1 | tee integration_error.log
           exit ${PIPESTATUS[0]}  # Ensure the exit code from the python script is propagated
         continue-on-error: true  # Ensure we capture the logs even if there's a failure
-     
-      - name: Print current directory
-        run: pwd
-      - name: List files in current directory
-        run: ls -l
 
-
+      # Upload the log files as artifacts
+      - name: Upload error logs
+        uses: actions/upload-artifact@v4
+        with:
+          name: error-logs
+          path: |
+            ./unittest_error.log
+            ./integration_error.log
 
   upload_error_logs:
     runs-on: ubuntu-latest
@@ -78,15 +82,20 @@ jobs:
     if: ${{ github.event.inputs.logErrors == 'true' && (needs.test_openweathermap_ubuntu.outputs.unittest_failed == 'true' || needs.test_openweathermap_ubuntu.outputs.integration_failed == 'true') }}
 
     steps:
-      # Upload error logs
-      - name: Upload error logs
-        uses: actions/upload-artifact@v4
+      # Download error logs
+      - name: Download error logs
+        uses: actions/download-artifact@v4
         with:
           name: error-logs
-          path: |
-            ./unittest_error.log
-            ./integration_error.log
-          working-directory: /home/runner/work/DevOpsProject_Tiger/DevOpsProject_Tiger
+
+      # Optionally, you can upload the error logs somewhere or use them for debugging
+      - name: Upload error logs (example)
+        uses: actions/upload-artifact@v4
+        with:
+          name: uploaded-error-logs
+          path: ./unittest_error.log
+          retention-days: 7
+
   
   build_and_publish_docker:
     runs-on: ubuntu-latest
