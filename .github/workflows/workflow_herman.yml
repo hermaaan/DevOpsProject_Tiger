@@ -38,7 +38,7 @@ jobs:
         continue-on-error: true
 
       - name: Upload error log if LogErrors is enabled and any tests failed
-        if: ${{ steps.run_tests.outcome == 'failure' && github.event.inputs.logErrors == 'true' }}
+        if: ${{ steps.run_tests.outcome == 'failure' && github.event.inputs.log_errors == 'true' }}
         uses: actions/upload-artifact@v4
         with:
           name: Upload error log
