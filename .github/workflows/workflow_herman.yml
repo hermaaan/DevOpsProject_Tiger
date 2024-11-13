@@ -36,7 +36,6 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-
       # Run unittest tests and redirect output to log file
       - name: Run unittest tests
         if: ${{ github.event.inputs.runTest == 'true' }}
@@ -55,7 +54,6 @@ jobs:
         run: |
           nohup python -m flask run --host=0.0.0.0 &
           sleep 5  # Give the server a few seconds to start
-
       # Run integration test and redirect output to log file
       - name: Run integration test
         id: run_integration_test
@@ -66,46 +64,27 @@ jobs:
           exit ${PIPESTATUS[0]}  # Ensure the exit code from the python script is propagated
         continue-on-error: true  # Ensure we capture the logs even if there's a failure
 
-      # Upload log files as artifacts if logErrors is set to true
-      - name: Upload log files
-        if: ${{ github.event.inputs.logErrors == 'true' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: error-logs-${{ github.run_id }}  # Unique artifact name with run ID
-          path: |
-            ./unittest_error.log
-            ./integration_error.log
-
   upload_error_logs:
     runs-on: ubuntu-latest
     needs: test_openweathermap_ubuntu
+    # Only run this job if logErrors is true and at least one test has failed
     if: ${{ github.event.inputs.logErrors == 'true' && (needs.test_openweathermap_ubuntu.outputs.unittest_failed == 'true' || needs.test_openweathermap_ubuntu.outputs.integration_failed == 'true') }}
+
     steps:
-      # Download error logs from the previous job
-      - name: Download error logs
-        uses: actions/download-artifact@v4
-        with:
-          name: error-logs-${{ github.run_id }}  # Ensure it matches the uploaded artifact name
-
-      # Check if the log files exist
-      - name: Check if log files exist
-        run: |
-          if [[ -f "unittest_error.log" ]]; then echo "unittest_error.log exists"; else echo "unittest_error.log does not exist"; fi
-          if [[ -f "integration_error.log" ]]; then echo "integration_error.log exists"; else echo "integration_error.log does not exist"; fi
-
       # Upload error logs
       - name: Upload error logs
         uses: actions/upload-artifact@v4
         with:
-          name: error-logs-${{ github.run_id }}  # Ensure it matches the uploaded artifact name
+          name: error-logs
           path: |
-            ./unittest_error.log
-            ./integration_error.log
-
+            unittest_error.log
+            integration_error.log
+  
   build_and_publish_docker:
     runs-on: ubuntu-latest
     needs: test_openweathermap_ubuntu
-    if: success()  # Only runs if all previous steps succeed
+    # Only run this job if all tests pass
+    if: ${{ needs.test_openweathermap_ubuntu.outputs.unittest_failed == 'false' && needs.test_openweathermap_ubuntu.outputs.integration_failed == 'false' }}
     steps:
       # Checkout code
       - name: Checkout code
@@ -122,7 +101,6 @@ jobs:
       - name: Build Docker image
         run: |
           docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/opwm-api:latest .
-
       # Push Docker image to Docker Hub
       - name: Push Docker image to Docker Hub
         run: |
