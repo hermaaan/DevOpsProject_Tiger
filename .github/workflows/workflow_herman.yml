@@ -84,8 +84,8 @@ jobs:
         with:
           name: error-logs
           path: |
-            unittest_error.log
-            integration_error.log
+            ./unittest_error.log
+            ./integration_error.log
   
   build_and_publish_docker:
     runs-on: ubuntu-latest
