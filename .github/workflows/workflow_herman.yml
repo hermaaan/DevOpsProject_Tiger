@@ -56,7 +56,10 @@ jobs:
         id: run_integration_test
         env:
           API_KEY: ${{ secrets.API_KEY }}
-        run: python integrationtest_herman.py 2>&1 | tee integration_error.log
+        run: |
+          python integrationtest_herman.py 2>&1 | tee integration_error.log
+          exit ${PIPESTATUS[0]}  # Ensure the exit code from the python script is propagated
+
 
       # Upload log files if logErrors is set to true
       - name: Upload error logs
