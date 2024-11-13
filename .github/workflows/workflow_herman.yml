@@ -63,6 +63,13 @@ jobs:
           python integrationtest_herman.py 2>&1 | tee integration_error.log
           exit ${PIPESTATUS[0]}  # Ensure the exit code from the python script is propagated
         continue-on-error: true  # Ensure we capture the logs even if there's a failure
+     
+      - name: Print current directory
+        run: pwd
+      - name: List files in current directory
+        run: ls -l
+
+
 
   upload_error_logs:
     runs-on: ubuntu-latest
