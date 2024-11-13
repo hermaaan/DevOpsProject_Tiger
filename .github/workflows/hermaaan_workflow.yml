@@ -1,0 +1,47 @@
+name: Test-OPWM-APP
+
+on:
+  workflow_dispatch:
+    inputs:
+      log_errors:
+        description: 'Log errors if tests fail'
+        required: true
+        default: 'false'
+        type: boolean
+
+env:
+  API_KEY: ${{ secrets.API_KEY }}
+
+jobs:
+  TEST_OPWM:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      
+      - name: Run tests with pytest
+        id: run_tests
+        run: pytest test_UT_herman.py test_IT_herman.py > log_errors.log
+        continue-on-error: true
+
+      - name: Upload error log if LogErrors is enabled and any tests failed
+        if: ${{ steps.run_tests.outcome == 'failure' && github.event.inputs.log_errors == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: Upload error log
+          path: log_errors.log
+
+      - name: Mark job as failed if there are any errors
+        if: ${{ steps.run_tests.outcome == 'failure' }}
+        run: exit 1
