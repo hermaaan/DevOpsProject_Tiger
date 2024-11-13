@@ -66,27 +66,46 @@ jobs:
           exit ${PIPESTATUS[0]}  # Ensure the exit code from the python script is propagated
         continue-on-error: true  # Ensure we capture the logs even if there's a failure
 
+      # Upload log files as artifacts if logErrors is set to true
+      - name: Upload log files
+        if: ${{ github.event.inputs.logErrors == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: error-logs
+          path: |
+            ./unittest_error.log
+            ./integration_error.log
+
   upload_error_logs:
     runs-on: ubuntu-latest
     needs: test_openweathermap_ubuntu
-    # Only run this job if logErrors is true and at least one test has failed
     if: ${{ github.event.inputs.logErrors == 'true' && (needs.test_openweathermap_ubuntu.outputs.unittest_failed == 'true' || needs.test_openweathermap_ubuntu.outputs.integration_failed == 'true') }}
-
     steps:
+      # Download error logs from the previous job
+      - name: Download error logs
+        uses: actions/download-artifact@v4
+        with:
+          name: error-logs
+
+      # Check if the log files exist
+      - name: Check if log files exist
+        run: |
+          if [[ -f "unittest_error.log" ]]; then echo "unittest_error.log exists"; else echo "unittest_error.log does not exist"; fi
+          if [[ -f "integration_error.log" ]]; then echo "integration_error.log exists"; else echo "integration_error.log does not exist"; fi
+
       # Upload error logs
       - name: Upload error logs
         uses: actions/upload-artifact@v4
         with:
           name: error-logs
           path: |
-            unittest_error.log
-            integration_error.log
+            ./unittest_error.log
+            ./integration_error.log
 
   build_and_publish_docker:
     runs-on: ubuntu-latest
     needs: test_openweathermap_ubuntu
-    # Only run this job if all tests pass
-    if: ${{ needs.test_openweathermap_ubuntu.outputs.unittest_failed == 'false' && needs.test_openweathermap_ubuntu.outputs.integration_failed == 'false' }}
+    if: success()  # Only runs if all previous steps succeed
     steps:
       # Checkout code
       - name: Checkout code
