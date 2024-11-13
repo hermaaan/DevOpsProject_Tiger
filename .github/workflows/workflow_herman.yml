@@ -45,6 +45,7 @@ jobs:
           API_KEY: ${{ secrets.API_KEY }}
         run: |
           python -m unittest discover -s . -p "unittest_herman.py" 2>&1 | tee unittest_error.log
+        continue-on-error: true  # Ensure we capture the logs even if there's a failure
 
       # Start Flask app
       - name: Run Flask app
@@ -63,10 +64,17 @@ jobs:
         run: |
           python integrationtest_herman.py 2>&1 | tee integration_error.log
           exit ${PIPESTATUS[0]}  # Ensure the exit code from the python script is propagated
+        continue-on-error: true  # Ensure we capture the logs even if there's a failure
 
-      # Upload error logs if logErrors is set to true and tests fail
+  upload_error_logs:
+    runs-on: ubuntu-latest
+    needs: test_openweathermap_ubuntu
+    if: always()  # Always runs, even if the test job fails
+
+    steps:
+      # Upload error logs if logErrors is set to true and tests failed
       - name: Upload error logs
-        if: ${{ github.event.inputs.logErrors == 'true' && (steps.run_unittest_tests.outcome == 'failure' || steps.run_integration_test.outcome == 'failure') }}
+        if: ${{ github.event.inputs.logErrors == 'true' && (needs.test_openweathermap_ubuntu.outputs.unittest_failed == 'true' || needs.test_openweathermap_ubuntu.outputs.integration_failed == 'true') }}
         uses: actions/upload-artifact@v4
         with:
           name: error-logs
