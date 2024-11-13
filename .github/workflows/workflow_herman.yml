@@ -61,7 +61,7 @@ jobs:
       # Upload log files if logErrors is set to true
       - name: Upload error logs
         if: ${{ github.event.inputs.logErrors == 'true' }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: error-logs
           path: |
