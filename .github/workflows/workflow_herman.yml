@@ -41,6 +41,11 @@ jobs:
           API_KEY: ${{ secrets.API_KEY }}
         run: |
           python -m unittest discover -s . -p "unittest_herman.py" 2>&1 | tee unittest_error.log
+        continue-on-error: true  # Allow job to continue even if the test fails
+        # Capture exit code for later checks
+        # Save exit code to be used in condition for uploading logs
+        env:
+          UNITTEST_EXIT_CODE: ${{ steps.run_unittest_tests.outcome }}
 
       # Start Flask app
       - name: Run Flask app
@@ -56,11 +61,18 @@ jobs:
         id: run_integration_test
         env:
           API_KEY: ${{ secrets.API_KEY }}
-        run: python integrationtest_herman.py 2>&1 | tee integration_error.log
+        run: |
+          python integrationtest_herman.py 2>&1 | tee integration_error.log
+        continue-on-error: true  # Allow job to continue even if the test fails
+        # Capture exit code for later checks
+        env:
+          INTEGRATION_TEST_EXIT_CODE: ${{ steps.run_integration_test.outcome }}
 
-      # Upload log files if logErrors is set to true
+      # Upload log files if a test fails
       - name: Upload error logs
-        if: ${{ github.event.inputs.logErrors == 'true' }}
+        if: |
+          ${{ github.event.inputs.logErrors == 'true' }} &&
+          ( steps.run_unittest_tests.outcome == 'failure' || steps.run_integration_test.outcome == 'failure' )
         uses: actions/upload-artifact@v4
         with:
           name: error-logs
