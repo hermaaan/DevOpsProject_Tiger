@@ -37,7 +37,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      # Run unittest tests and redirect output to log file
+      # Run unittest tests and capture logs
       - name: Run unittest tests
         if: ${{ github.event.inputs.runTest == 'true' }}
         id: run_unittest_tests
@@ -45,66 +45,68 @@ jobs:
           API_KEY: ${{ secrets.API_KEY }}
         run: |
           python -m unittest discover -s . -p "unittest_herman.py" 2>&1 | tee unittest_error.log
-        continue-on-error: true  # Ensure we capture the logs even if there's a failure
+        continue-on-error: true
 
       # Start Flask app
       - name: Run Flask app
         env:
-          FLASK_APP: "app.py"  # Replace with your actual app filename
+          FLASK_APP: "app.py"
           FLASK_ENV: development
         run: |
           nohup python -m flask run --host=0.0.0.0 &
-          sleep 5  # Give the server a few seconds to start
+          sleep 5
 
-      # Run integration test and redirect output to log file
+      # Run integration test and capture logs
       - name: Run integration test
         id: run_integration_test
         env:
           API_KEY: ${{ secrets.API_KEY }}
         run: |
           python integrationtest_herman.py 2>&1 | tee integration_error.log
-          exit ${PIPESTATUS[0]}  # Ensure the exit code from the python script is propagated
-        continue-on-error: true  # Ensure we capture the logs even if there's a failure
+          exit ${PIPESTATUS[0]}
+        continue-on-error: true
 
-      # Upload the log files as artifacts
-      - name: Upload error logs
-        if: ${{ steps.run_unittest_tests.outcome == 'failure' || steps.run_integration_test.outcome == 'failure' }}
+      # Upload error logs only if the corresponding test failed
+      - name: Upload unittest error log
+        if: ${{ steps.run_unittest_tests.outcome == 'failure' }}
         uses: actions/upload-artifact@v4
         with:
-          name: error-logs
-          path: |
-            ./unittest_error.log
-            ./integration_error.log
+          name: unittest-error-log
+          path: ./unittest_error.log
+
+      - name: Upload integration error log
+        if: ${{ steps.run_integration_test.outcome == 'failure' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-error-log
+          path: ./integration_error.log
 
   upload_error_logs:
     runs-on: ubuntu-latest
     needs: test_openweathermap_ubuntu
-    # Only run this job if logErrors is true and at least one test has failed
+    # Run only if `logErrors` is true and at least one test has failed
     if: ${{ github.event.inputs.logErrors == 'true' && (needs.test_openweathermap_ubuntu.outputs.unittest_failed == 'true' || needs.test_openweathermap_ubuntu.outputs.integration_failed == 'true') }}
 
     steps:
-      # Download error logs
-      - name: Download error logs
+      # Download error logs conditionally
+      - name: Download unittest error log
+        if: ${{ needs.test_openweathermap_ubuntu.outputs.unittest_failed == 'true' }}
         uses: actions/download-artifact@v4
         with:
-          name: error-logs
+          name: unittest-error-log
 
-      # Optionally, you can upload the error logs somewhere or use them for debugging
-      - name: Upload error logs (example)
-        uses: actions/upload-artifact@v4
+      - name: Download integration error log
+        if: ${{ needs.test_openweathermap_ubuntu.outputs.integration_failed == 'true' }}
+        uses: actions/download-artifact@v4
         with:
-          name: uploaded-error-logs
-          path: |
-            ./unittest_error.log
-            ./integration_error.log
-          retention-days: 7
+          name: integration-error-log
 
-  
   build_and_publish_docker:
     runs-on: ubuntu-latest
     needs: test_openweathermap_ubuntu
-    # Only run this job if all tests pass
+    # Run only if all tests pass
     if: ${{ needs.test_openweathermap_ubuntu.outputs.unittest_failed == 'false' && needs.test_openweathermap_ubuntu.outputs.integration_failed == 'false' }}
+
     steps:
       # Checkout code
       - name: Checkout code
@@ -121,6 +123,7 @@ jobs:
       - name: Build Docker image
         run: |
           docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/opwm-api:latest .
+
       # Push Docker image to Docker Hub
       - name: Push Docker image to Docker Hub
         run: |
