@@ -1,4 +1,5 @@
 import os
+import pytest
 import sys
 import requests
 from dotenv import load_dotenv
