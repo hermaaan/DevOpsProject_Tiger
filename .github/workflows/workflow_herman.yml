@@ -69,12 +69,12 @@ jobs:
   upload_error_logs:
     runs-on: ubuntu-latest
     needs: test_openweathermap_ubuntu
-    if: always()  # Always runs, even if the test job fails
+    # Only run this job if logErrors is true and at least one test has failed
+    if: ${{ github.event.inputs.logErrors == 'true' && (needs.test_openweathermap_ubuntu.outputs.unittest_failed == 'true' || needs.test_openweathermap_ubuntu.outputs.integration_failed == 'true') }}
 
     steps:
-      # Upload error logs if logErrors is set to true and tests failed
+      # Upload error logs
       - name: Upload error logs
-        if: ${{ github.event.inputs.logErrors == 'true' && (needs.test_openweathermap_ubuntu.outputs.unittest_failed == 'true' || needs.test_openweathermap_ubuntu.outputs.integration_failed == 'true') }}
         uses: actions/upload-artifact@v4
         with:
           name: error-logs
@@ -85,6 +85,7 @@ jobs:
   build_and_publish_docker:
     runs-on: ubuntu-latest
     needs: test_openweathermap_ubuntu
+    # Only run this job if all tests pass
     if: ${{ needs.test_openweathermap_ubuntu.outputs.unittest_failed == 'false' && needs.test_openweathermap_ubuntu.outputs.integration_failed == 'false' }}
     steps:
       # Checkout code
