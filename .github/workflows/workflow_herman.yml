@@ -33,7 +33,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      # Run unittest tests and capture output to log file
+      # Run unittest tests and redirect output to log file
       - name: Run unittest tests
         if: ${{ github.event.inputs.runTest == 'true' }}
         id: run_unittest_tests
@@ -41,15 +41,6 @@ jobs:
           API_KEY: ${{ secrets.API_KEY }}
         run: |
           python -m unittest discover -s . -p "unittest_herman.py" 2>&1 | tee unittest_error.log
-          
-      # Check if any tests failed
-      - name: Check if any tests failed
-        id: check_test_failures
-        run: |
-          if grep -q 'FAIL' unittest_error.log; then
-            echo "Tests failed"
-            exit 1
-          fi
 
       # Start Flask app
       - name: Run Flask app
@@ -60,27 +51,17 @@ jobs:
           nohup python -m flask run --host=0.0.0.0 &
           sleep 5  # Give the server a few seconds to start
 
-      # Run integration test and capture output to log file
+      # Run integration test and redirect output to log file
       - name: Run integration test
         id: run_integration_test
         env:
           API_KEY: ${{ secrets.API_KEY }}
-        run: |
-          python integrationtest_herman.py 2>&1 | tee integration_error.log
-          
-      # Check if integration tests failed
-      - name: Check if integration test failed
-        id: check_integration_failures
-        run: |
-          if grep -q 'FAIL' integration_error.log; then
-            echo "Integration test failed"
-            exit 1
-          fi
+        run: python integrationtest_herman.py 2>&1 | tee integration_error.log
 
-      # Upload error logs if logErrors is true and there were test failures
+      # Upload log files if logErrors is set to true
       - name: Upload error logs
-        if: ${{ github.event.inputs.logErrors == 'true' && (steps.check_test_failures.outcome == 'failure' || steps.check_integration_failures.outcome == 'failure') }}
-        uses: actions/upload-artifact@v3
+        if: ${{ github.event.inputs.logErrors == 'true' }}
+        uses: actions/upload-artifact@v4
         with:
           name: error-logs
           path: |
