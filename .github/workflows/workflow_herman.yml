@@ -52,9 +52,6 @@ jobs:
   build_and_publish_docker:
     runs-on: ubuntu-latest
     needs: TEST_OPWM
-    # Run only if all tests pass
-    if: ${{ needs.test_openweathermap_ubuntu.outputs.unittest_failed == 'false' && needs.test_openweathermap_ubuntu.outputs.integration_failed == 'false' }}
-
     steps:
       # Checkout code
       - name: Checkout code
