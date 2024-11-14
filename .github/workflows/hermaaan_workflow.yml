@@ -68,4 +68,4 @@ jobs:
 
       - name: Push Docker image to Docker Hub
         run: |
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/opwm-api:latest
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/opwm-test:latest
