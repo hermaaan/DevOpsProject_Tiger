@@ -64,7 +64,7 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/OPWM-test:latest .
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/opwm-test:latest .
 
       - name: Push Docker image to Docker Hub
         run: |
