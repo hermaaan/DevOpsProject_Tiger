@@ -1,6 +1,8 @@
 # Use the official Python image from the Docker Hub
 FROM python:3.11-slim
 
+ARG API_KEY
+ENV API_KEY=${API_KEY}
 # Set the working directory in the container
 WORKDIR /app
 
