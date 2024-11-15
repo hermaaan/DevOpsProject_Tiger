@@ -1,22 +1,11 @@
-# Use the official Python image from the Docker Hub
-FROM python:3.11-slim
+FROM python:3.11
 
 ARG API_KEY
 ENV API_KEY=${API_KEY}
-# Set the working directory in the container
+
+COPY requirements.txt /app/
+COPY . /app/
 WORKDIR /app
-
-# Copy the requirements file into the container
-COPY requirements.txt .
-
-# Install any dependencies
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Copy the rest of the application code into the container
-COPY . .
-
-# Expose port 5000
+RUN pip install -r requirements.txt
 EXPOSE 5000
-
-# Specify the command to run the application
 CMD ["python", "app.py"]
